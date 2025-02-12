@@ -13,7 +13,7 @@ import sub.librarymanagement.domain.user.dto.UserIdDto;
 import sub.librarymanagement.domain.user.service.UserService;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 

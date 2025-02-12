@@ -13,7 +13,9 @@ public enum ErrorCode {
     INVALID_ROLE(HttpStatus.BAD_REQUEST, "유효하지 않은 권한입니다"),
     AUTHORIZATION_HEADER_NOT_FOUND(HttpStatus.BAD_REQUEST, "Authorization 헤더가 존재하지 않습니다"),
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "토큰이 만료되었습니다"),
-    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다");
+    INVALID_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다"),
+    BOOK_DUPLICATION(HttpStatus.BAD_REQUEST, "중복된 책 정보입니다"),
+    BOOK_NOT_FOUND(HttpStatus.NOT_FOUND, "책을 찾을 수 없습니다");
 
     private final HttpStatus httpStatus;
     private final String message;

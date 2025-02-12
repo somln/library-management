@@ -4,7 +4,7 @@ import sub.librarymanagement.common.exception.ApplicationException;
 import sub.librarymanagement.common.exception.ErrorCode;
 
 public enum Role {
-    ADMIN, USER;
+    ROLE_ADMIN, ROLE_USER;
 
     public static Role from(String role) {
         try {

@@ -20,7 +20,7 @@ public class UserService {
 
         validateUserInfo(joinDto);
 
-        User user = User.from(joinDto.username(), joinDto.email(),
+        User user = User.of(joinDto.username(), joinDto.email(),
                 bCryptPasswordEncoder.encode(joinDto.password()), joinDto.role());
         userRepository.save(user);
         return UserIdDto.from(user.getId());

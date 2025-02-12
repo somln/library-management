@@ -38,7 +38,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    public static User from(String username, String email, String password, String role) {
+    public static User of(String username, String email, String password, String role) {
         return User.builder()
                 .username(username)
                 .email(email)
