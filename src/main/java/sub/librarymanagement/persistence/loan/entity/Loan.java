@@ -20,9 +20,9 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userId;  // 대출한 사용자
+    private Long userId;  // 대출한 사용자
 
-    private String bookId;  // 대출한 도서
+    private Long bookId;  // 대출한 도서
 
     private LocalDate loanDate;  // 대출 일자
 
@@ -30,4 +30,21 @@ public class Loan {
 
     private boolean returned;  // 반납 여부
 
+    public static Loan of(Long userId, Long bookId) {
+        return Loan.builder()
+                .userId(userId)
+                .bookId(bookId)
+                .loanDate(LocalDate.now())
+                .returned(false)
+                .build();
+    }
+
+    public void removeBook() {
+        this.bookId = null;
+    }
+
+    public void returnBook(Loan loan) {
+        this.returnDate = LocalDate.now();
+        this.returned = true;
+    }
 }

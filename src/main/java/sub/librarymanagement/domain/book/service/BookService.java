@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import sub.librarymanagement.common.exception.ApplicationException;
 import sub.librarymanagement.common.exception.ErrorCode;
 import sub.librarymanagement.domain.book.dto.*;
+import sub.librarymanagement.domain.loan.service.LoanRepository;
 import sub.librarymanagement.persistence.book.entity.Book;
+import sub.librarymanagement.persistence.loan.entity.Loan;
 
 import java.util.List;
 
@@ -19,19 +21,12 @@ import java.util.List;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final LoanRepository loanRepository;
 
     public BookIdDto registerBook(RegisterBookDto bookDto) {
-        validateBookInfo(bookDto);
         Book book = Book.of(bookDto.title(), bookDto.author(), bookDto.publisher(), bookDto.publishDate());
         bookRepository.save(book);
         return BookIdDto.from(book.getId());
-    }
-
-    private void validateBookInfo(RegisterBookDto bookDto) {
-        //제목, 저자, 출판일이 모두 같은 책이 이미 존재하는지 확인
-        if (bookRepository.existsByTitleAndAuthorAndPublishDate(bookDto.title(), bookDto.author(), bookDto.publishDate())) {
-            throw new ApplicationException(ErrorCode.BOOK_DUPLICATION);
-        }
     }
 
     @Transactional
@@ -41,9 +36,24 @@ public class BookService {
         return BookIdDto.from(book.getId());
     }
 
-
     public void deleteBook(Long bookId) {
         Book book = bookRepository.findById(bookId);
+        validateBookDeletion(bookId);
+        deleteBook(book);
+    }
+
+    //대출 중인 책이면 삭제 불가
+    public void validateBookDeletion(Long bookId) {
+        if (loanRepository.findByBookIdAndReturnedFalse(bookId).isPresent()) {
+            throw new ApplicationException(ErrorCode.CANNOT_DELETE_BOOK);
+        }
+    }
+
+    @Transactional
+    public void deleteBook(Book book) {
+        // 해당 책과 연관된 모든 대출 기록에서 bookId를 제거하여 책이 삭제되더라도 대출 기록을 유지함
+        List<Loan> loans = loanRepository.findByBookId(book.getId());
+        loans.forEach(Loan::removeBook);
         bookRepository.delete(book);
     }
 
@@ -73,4 +83,6 @@ public class BookService {
                 book.getAuthor(), book.getPublisher(), book.getPublishDate())).toList();
         return BookListDto.of(bookPage.getTotalPages(), bookPage.getNumber(), bookPage.isLast(), bookList);
     }
+
+
 }
