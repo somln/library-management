@@ -2,7 +2,9 @@ package sub.librarymanagement.domain.book.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sub.librarymanagement.common.exception.ApplicationException;
@@ -45,12 +47,20 @@ public class BookService {
         bookRepository.delete(book);
     }
 
-    public BookListDto getBookList(Pageable pageable) {
-        Page<Book> bookPage = bookRepository.findAllPagination(pageable);
-        List<BookDto> bookList = bookPage.getContent().stream().map(book -> BookDto.of(book.getId(), book.getTitle(),
-                book.getAuthor(), book.getPublisher(), book.getPublishDate())).toList();
+    public BookListDto getBookList(SortDto sortDto, Pageable pageable) {
+        Sort.Direction direction = sortDto.sortDirection().equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(direction, sortDto.sortBy());
+
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Page<Book> bookPage = bookRepository.findAll(sortedPageable);
+        List<BookDto> bookList = bookPage.getContent().stream()
+                .map(book -> BookDto.of(book.getId(), book.getTitle(), book.getAuthor(), book.getPublisher(), book.getPublishDate()))
+                .toList();
+
         return BookListDto.of(bookPage.getTotalPages(), bookPage.getNumber(), bookPage.isLast(), bookList);
     }
+
 
     public BookDto getBook(Long bookId) {
         Book book = bookRepository.findById(bookId);

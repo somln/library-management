@@ -2,7 +2,9 @@ package sub.librarymanagement.domain.book.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sub.librarymanagement.common.util.ResponseDto;
@@ -37,9 +39,12 @@ public class BookController {
     }
 
     @GetMapping("/books")
-    public ResponseEntity<ResponseDto<BookListDto>> getBookList(Pageable pageable) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.getBookList(pageable)));
+    public ResponseEntity<ResponseDto<BookListDto>> getBookList(
+            @Valid SortDto sortDto,
+            Pageable pageable) {
+        return ResponseEntity.ok(ResponseDto.okWithData(bookService.getBookList(sortDto, pageable)));
     }
+
 
     @GetMapping("/books/{bookId}")
     public ResponseEntity<ResponseDto<BookDto>> getBook(

@@ -41,7 +41,7 @@ public class CoreBookRepository implements BookRepository {
     }
 
     @Override
-    public Page<Book> findAllPagination(Pageable pageable) {
+    public Page<Book> findAll(Pageable pageable) {
         return jpaBookRepository.findAll(pageable);
     }
 
