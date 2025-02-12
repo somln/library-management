@@ -65,10 +65,7 @@ public class JWTFilter extends OncePerRequestFilter {
             Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            filterChain.doFilter(request, response);
-
         } catch (JwtException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
@@ -77,8 +74,8 @@ public class JWTFilter extends OncePerRequestFilter {
                     e.getMessage());
             response.getWriter().write(jsonResponse);
         }
+        filterChain.doFilter(request, response);
     }
-
 
 
 }

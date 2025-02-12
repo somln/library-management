@@ -51,10 +51,6 @@ public class JWTUtil {
 
     public String createJwt(String username, String role, long expiredMs) {
 
-        System.out.println("ExpiredMs: " + expiredMs);
-        System.out.println("Issued At: " + new Date(System.currentTimeMillis()));
-        System.out.println("Expiration At: " + new Date(System.currentTimeMillis() + expiredMs));
-
         return Jwts.builder()
                 .claim("username", username)
                 .claim("role", role)
