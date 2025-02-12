@@ -18,13 +18,21 @@ public class UserService {
 
     public UserIdDto registerUser(JoinDto joinDto) {
 
-        if(userRepository.existsByEmail(joinDto.email())) {
-            throw new ApplicationException(ErrorCode.EMAIL_DUPLICATION);
-        }
+        validateUserInfo(joinDto);
 
         User user = User.from(joinDto.username(), joinDto.email(),
                 bCryptPasswordEncoder.encode(joinDto.password()), joinDto.role());
         userRepository.save(user);
         return UserIdDto.from(user.getId());
+    }
+
+    private void validateUserInfo(JoinDto joinDto) {
+        if (userRepository.existsByUsername(joinDto.username())) {
+            throw new ApplicationException(ErrorCode.USERNAME_DUPLICATION);
+        }
+
+        if(userRepository.existsByEmail(joinDto.email())) {
+            throw new ApplicationException(ErrorCode.EMAIL_DUPLICATION);
+        }
     }
 }

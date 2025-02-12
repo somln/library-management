@@ -22,4 +22,14 @@ public class CoreUserRepository implements UserRepository {
     public boolean existsByEmail(String email) {
         return jpaUserRepository.existsByEmail(email);
     }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return jpaUserRepository.existsByUsername(username);
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return jpaUserRepository.findByUsername(username);
+    }
 }

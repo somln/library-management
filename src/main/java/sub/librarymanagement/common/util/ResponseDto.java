@@ -21,7 +21,7 @@ public class ResponseDto<T> {
         this.errorMessage = errorMessage;
     }
 
-    public static ResponseDto<Void> ok() {
+    public static ResponseDto<Void> ok(String success) {
         return ResponseDto.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .build();
