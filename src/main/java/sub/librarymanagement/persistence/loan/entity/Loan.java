@@ -13,10 +13,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Getter
 @Builder
+@Table(name = "loans")
 public class Loan {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String userId;  // 대출한 사용자
 

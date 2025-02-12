@@ -8,16 +8,20 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import sub.librarymanagement.persistence.user.enums.Role;
+
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Builder
+@Table(name = "users")
 public class User {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @NotNull
     @Size(min = 1, max = 255)
@@ -30,5 +34,17 @@ public class User {
     @NotNull
     @Size(min = 6)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    public static User from(String username, String email, String password, String role) {
+        return User.builder()
+                .username(username)
+                .email(email)
+                .password(password)
+                .role(Role.from(role))
+                .build();
+    }
 
 }

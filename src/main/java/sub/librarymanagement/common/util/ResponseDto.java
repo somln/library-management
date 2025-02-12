@@ -1,11 +1,13 @@
 package sub.librarymanagement.common.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import sub.librarymanagement.common.exception.ErrorCode;
 
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseDto<T> {
 
     private final int code;

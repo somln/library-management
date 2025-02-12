@@ -15,10 +15,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Getter
 @Builder
+@Table(name = "books")
 public class Book {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @NotNull
     @Size(min = 1, max = 255)
