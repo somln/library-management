@@ -10,7 +10,6 @@ import sub.librarymanagement.persistence.book.entity.Book;
 import java.time.LocalDate;
 
 public interface JpaBookRepository extends JpaRepository<Book, Long> {
-    boolean existsByTitleAndAuthorAndPublishDate(String title, String author, LocalDate publishDate);
 
     Page<Book> findAll(Pageable pageable);
 

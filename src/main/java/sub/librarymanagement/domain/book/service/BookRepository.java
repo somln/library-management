@@ -6,8 +6,6 @@ import sub.librarymanagement.persistence.book.entity.Book;
 import java.time.LocalDate;
 
 public interface BookRepository {
-    boolean existsByTitleAndAuthorAndPublishDate(String title, String author, LocalDate publishDate);
-
     void save(Book book);
 
     Book findById(Long bookId);

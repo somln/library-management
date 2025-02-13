@@ -18,7 +18,6 @@ public class CoreLoanRepository implements LoanRepository {
 
     private final JpaLoanRepository jpaLoanRepository;
 
-
     @Override
     public Optional<Object> findByBookIdAndReturnedFalse(Long bookId) {
         return jpaLoanRepository.findByIdAndReturnedFalse(bookId);

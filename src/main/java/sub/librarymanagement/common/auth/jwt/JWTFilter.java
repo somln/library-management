@@ -17,7 +17,6 @@ import java.io.IOException;
 
 import static sub.librarymanagement.common.auth.jwt.JWTProperties.*;
 
-
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
@@ -57,11 +56,13 @@ public class JWTFilter extends OncePerRequestFilter {
             String username = jwtUtil.getUsername(token);
             String role = jwtUtil.getRole(token);
 
+            // 매 요청마다 DB 조회를 하지 않기 위해 임시 email과 pw로 User 객체 생성
             User user = User.of(username, "temp@example.com", "tempPW", role);
             CustomUserDetails customUserDetails = new CustomUserDetails(user);
 
             Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authToken);
+            filterChain.doFilter(request, response);
 
         } catch (JwtException e) {
             response.setContentType("application/json");
@@ -71,9 +72,17 @@ public class JWTFilter extends OncePerRequestFilter {
                     HttpServletResponse.SC_UNAUTHORIZED,
                     e.getMessage());
             response.getWriter().write(jsonResponse);
+            return;
         }
-        filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // 로그인 경로를 필터링에서 제외
+        String path = request.getServletPath();
+        return path.equals("/login");
     }
 
 
 }
+

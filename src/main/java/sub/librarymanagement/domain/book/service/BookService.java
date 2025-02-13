@@ -36,6 +36,7 @@ public class BookService {
         return BookIdDto.from(book.getId());
     }
 
+    @Transactional
     public void deleteBook(Long bookId) {
         Book book = bookRepository.findById(bookId);
         validateBookDeletion(bookId);
@@ -58,19 +59,23 @@ public class BookService {
     }
 
     public BookListDto getBookList(SortDto sortDto, Pageable pageable) {
+        Pageable sortedPageable = createSortedPageable(sortDto, pageable);
+        Page<Book> bookPage = bookRepository.findAll(sortedPageable);
+        return createBookListDto(bookPage);
+    }
+
+    private Pageable createSortedPageable(SortDto sortDto, Pageable pageable) {
         Sort.Direction direction = sortDto.sortDirection().equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(direction, sortDto.sortBy());
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
 
-        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-
-        Page<Book> bookPage = bookRepository.findAll(sortedPageable);
+    private BookListDto createBookListDto(Page<Book> bookPage) {
         List<BookDto> bookList = bookPage.getContent().stream()
                 .map(book -> BookDto.of(book.getId(), book.getTitle(), book.getAuthor(), book.getPublisher(), book.getPublishDate()))
                 .toList();
-
         return BookListDto.of(bookPage.getTotalPages(), bookPage.getNumber(), bookPage.isLast(), bookList);
     }
-
 
     public BookDto getBook(Long bookId) {
         Book book = bookRepository.findById(bookId);
@@ -79,10 +84,7 @@ public class BookService {
 
     public BookListDto searchBook(SearchDto searchDto, Pageable pageable) {
         Page<Book> bookPage = bookRepository.search(searchDto.q(), pageable);
-        List<BookDto> bookList = bookPage.getContent().stream().map(book -> BookDto.of(book.getId(), book.getTitle(),
-                book.getAuthor(), book.getPublisher(), book.getPublishDate())).toList();
-        return BookListDto.of(bookPage.getTotalPages(), bookPage.getNumber(), bookPage.isLast(), bookList);
+        return createBookListDto(bookPage);
     }
-
 
 }

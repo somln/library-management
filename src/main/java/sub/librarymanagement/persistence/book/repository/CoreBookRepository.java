@@ -20,11 +20,6 @@ public class CoreBookRepository implements BookRepository {
     private final JpaBookRepository jpaBookRepository;
 
     @Override
-    public boolean existsByTitleAndAuthorAndPublishDate(String title, String author, LocalDate publishDate) {
-        return jpaBookRepository.existsByTitleAndAuthorAndPublishDate(title, author, publishDate);
-    }
-
-    @Override
     public void save(Book book) {
         jpaBookRepository.save(book);
     }

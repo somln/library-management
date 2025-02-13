@@ -3,7 +3,6 @@ package sub.librarymanagement.common.auth.jwt;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,6 +13,9 @@ import sub.librarymanagement.common.auth.userDetail.CustomUserDetails;
 
 import java.util.Collection;
 import java.util.Iterator;
+
+import static sub.librarymanagement.common.auth.jwt.JWTProperties.*;
+import static sub.librarymanagement.common.auth.jwt.JWTProperties.TOKEN_EXPIRATION_TIME;
 
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -51,9 +53,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String role = auth.getAuthority();
 
-        String token = jwtUtil.createJwt(username, role, 60*60*1000L);
+        String token = jwtUtil.createJwt(username, role, TOKEN_EXPIRATION_TIME);
 
-        response.addHeader("Authorization", "Bearer " + token);
+        response.addHeader(HEADER_STRING_TOKEN, TOKEN_PREFIX + token);
     }
 
     @Override
