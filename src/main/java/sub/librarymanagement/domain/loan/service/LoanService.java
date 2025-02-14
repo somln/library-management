@@ -6,11 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import sub.librarymanagement.common.exception.ApplicationException;
 import sub.librarymanagement.common.exception.ErrorCode;
 import sub.librarymanagement.domain.book.service.BookRepository;
-import sub.librarymanagement.domain.loan.dto.IsLoanedDto;
-import sub.librarymanagement.domain.loan.dto.LoanIdDto;
 import sub.librarymanagement.domain.user.service.UserRepository;
 import sub.librarymanagement.persistence.loan.entity.Loan;
 import sub.librarymanagement.persistence.user.entity.User;
+import sub.model.IsLoanedDto;
+import sub.model.LoanIdDto;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class LoanService {
         User currentUser = userRepository.getByUsername(user.getUsername());
         Loan loan = Loan.of(currentUser.getId(), bookId);
         loanRepository.save(loan);
-        return new LoanIdDto(loan.getId());
+        return new LoanIdDto().loanId(loan.getId());
     }
 
     public void validateLoanAvailability(Long bookId) {
@@ -41,7 +41,7 @@ public class LoanService {
         User currentUser = userRepository.getByUsername(user.getUsername());
         validateLoanReturn(loan, currentUser);
         loan.returnBook(loan);
-        return new LoanIdDto(loan.getId());
+        return new LoanIdDto().loanId(loan.getId());
     }
 
     public void validateLoanReturn(Loan loan, User user) {
@@ -57,6 +57,6 @@ public class LoanService {
 
     public IsLoanedDto isLoaned(Long bookId) {
         bookRepository.findBookById(bookId);
-        return IsLoanedDto.from(loanRepository.findByBookIdAndReturnedFalse(bookId).isPresent());
+        return new IsLoanedDto().isLoaned(loanRepository.findByBookIdAndReturnedFalse(bookId).isPresent());
     }
 }

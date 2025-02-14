@@ -6,40 +6,52 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import sub.librarymanagement.common.util.ResponseDto;
+import sub.model.ResponseDtoError;
 
 @RestControllerAdvice
 public class GlobalExceptionRestAdvice {
 
     @ExceptionHandler
-    public ResponseEntity<ResponseDto<Void>> handleApplicationException(ApplicationException e) {
+    public ResponseEntity<ResponseDtoError> handleApplicationException(ApplicationException e) {
+        ResponseDtoError errorResponse = new ResponseDtoError()
+                .code(e.getErrorCode().getHttpStatus().value())
+                .errorMessage(e.getErrorCode().getMessage());
+
         return ResponseEntity
                 .status(e.getErrorCode().getHttpStatus())
-                .body(ResponseDto.error(e.getErrorCode()));
+                .body(errorResponse);
     }
 
     @ExceptionHandler
-    public ResponseEntity<ResponseDto<Void>> handleBindException(BindException e) {
+    public ResponseEntity<ResponseDtoError> handleBindException(BindException e) {
+        ResponseDtoError errorResponse = new ResponseDtoError()
+                .code(HttpStatus.BAD_REQUEST.value())
+                .errorMessage(e.getBindingResult().getAllErrors().get(0).getDefaultMessage());
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ResponseDto.errorWithMessage(
-                        HttpStatus.BAD_REQUEST,
-                        e.getBindingResult().getAllErrors().get(0).getDefaultMessage()
-                ));
+                .body(errorResponse);
     }
 
     @ExceptionHandler
-    public ResponseEntity<ResponseDto<Void>> handleDbException(DataAccessException e) {
+    public ResponseEntity<ResponseDtoError> handleDbException(DataAccessException e) {
+        ResponseDtoError errorResponse = new ResponseDtoError()
+                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .errorMessage(e.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ResponseDto.errorWithMessage(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage()));
+                .body(errorResponse);
     }
 
     @ExceptionHandler
-    public ResponseEntity<ResponseDto<Void>> handleServerException(RuntimeException e) {
+    public ResponseEntity<ResponseDtoError> handleServerException(RuntimeException e) {
+        ResponseDtoError errorResponse = new ResponseDtoError()
+                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .errorMessage(e.getMessage());
+
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ResponseDto.errorWithMessage(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage()));
+                .body(errorResponse);
     }
-
 }

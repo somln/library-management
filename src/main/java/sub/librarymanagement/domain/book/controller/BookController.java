@@ -1,62 +1,80 @@
 package sub.librarymanagement.domain.book.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import sub.librarymanagement.common.util.ResponseDto;
-import sub.librarymanagement.domain.book.dto.*;
+import org.springframework.web.bind.annotation.RestController;
+import sub.api.BooksApi;
+import sub.model.*;
 import sub.librarymanagement.domain.book.service.BookService;
 
+import java.util.List;
+import java.util.Optional;
+
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
-public class BookController {
+public class BookController implements BooksApi {
 
     private final BookService bookService;
 
-    @PostMapping("/admin/books")
-    public ResponseEntity<ResponseDto<BookIdDto>> registerBook(
-            @Valid @RequestBody BookInfoDto registerBookDto) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.registerBook(registerBookDto)));
+    @Override
+    public ResponseEntity<ResponseDtoBookIdDto> booksPost(BookInfoDto bookInfoDto) {
+        BookIdDto bookIdDto = bookService.registerBook(bookInfoDto);
+
+        ResponseDtoBookIdDto response = new ResponseDtoBookIdDto().code(200).data(bookIdDto);
+        return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/admin/books/{bookId}")
-    public ResponseEntity<ResponseDto<BookIdDto>> updateBook(
-            @PathVariable Long bookId,
-            @Valid @RequestBody BookInfoDto updateBookDto) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.updateBook(bookId, updateBookDto)));
+    @Override
+    public ResponseEntity<ResponseDtoBookIdDto> booksBookIdDelete(Long bookId) {
+        BookIdDto bookIdDto = bookService.deleteBook(bookId);
+
+        ResponseDtoBookIdDto response = new ResponseDtoBookIdDto().code(200).data(bookIdDto);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/admin/books/{bookId}")
-    public ResponseEntity<ResponseDto<Void>> deleteBook(
-            @PathVariable Long bookId) {
-        bookService.deleteBook(bookId);
-        return ResponseEntity.ok(ResponseDto.ok());
+    @Override
+    public ResponseEntity<ResponseDtoBookListDto> booksGet(String sort, List<Long> tags, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(
+                Optional.ofNullable(page).orElse(0),
+                Optional.ofNullable(size).orElse(20)
+        );
+
+        BookListDto result = bookService.getBookList(sort, tags, pageable);
+
+        ResponseDtoBookListDto response = new ResponseDtoBookListDto().code(200).data(result);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/books")
-    public ResponseEntity<ResponseDto<BookListDto>> getBookList(
-            @Valid SortDto sortDto,
-            BookTagListDto bookTagListDto,
-            Pageable pageable) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.getBookList(sortDto, bookTagListDto, pageable)));
+    @Override
+    public ResponseEntity<ResponseDtoBookDto> booksBookIdGet(Long bookId) {
+        BookDto result = bookService.getBook(bookId);
+
+        ResponseDtoBookDto response = new ResponseDtoBookDto().code(200).data(result);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/books/{bookId}")
-    public ResponseEntity<ResponseDto<BookDto>> getBook(
-            @PathVariable Long bookId) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.getBook(bookId)));
+    @Override
+    public ResponseEntity<ResponseDtoBookListDto> booksSearchGet(String q, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(
+                Optional.ofNullable(page).orElse(0),
+                Optional.ofNullable(size).orElse(20)
+        );
+
+        BookListDto result = bookService.searchBook(q, pageable);
+
+        ResponseDtoBookListDto response = new ResponseDtoBookListDto().code(200).data(result);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/books/search")
-    public ResponseEntity<ResponseDto<BookListDto>> searchBook(
-            @ModelAttribute @Valid SearchDto searchDto,
-            Pageable pageable) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.searchBook(searchDto, pageable)));
+    @Override
+    public ResponseEntity<ResponseDtoBookIdDto> booksBookIdPut(Long bookId, BookInfoDto bookInfoDto) {
+        BookIdDto bookIdDto = bookService.updateBook(bookId, bookInfoDto);
+
+        ResponseDtoBookIdDto response = new ResponseDtoBookIdDto().code(200).data(bookIdDto);
+        return ResponseEntity.ok(response);
     }
 
 }
-
 

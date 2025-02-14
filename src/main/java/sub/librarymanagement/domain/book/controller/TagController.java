@@ -3,33 +3,38 @@ package sub.librarymanagement.domain.book.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import sub.librarymanagement.common.util.ResponseDto;
-import sub.librarymanagement.domain.book.dto.TagIdDto;
-import sub.librarymanagement.domain.book.dto.TagInfoDto;
-import sub.librarymanagement.domain.book.dto.TagListDto;
+import sub.api.TagsApi;
 import sub.librarymanagement.domain.book.service.TagService;
+import sub.model.*;
 
 @RestController
-@RequestMapping("/api/admin/tags")
 @RequiredArgsConstructor
-public class TagController {
+public class TagController implements TagsApi {
 
     private final TagService tagService;
 
-    @PostMapping
-    public ResponseEntity<ResponseDto<TagIdDto>> registerTag(
-            @RequestBody TagInfoDto tagInfoDto) {
-        return ResponseEntity.ok(ResponseDto.okWithData(tagService.registerTag(tagInfoDto)));
+    @Override
+    public ResponseEntity<ResponseDtoTagListDto> tagsGet() {
+        TagListDto tagList = tagService.getTagList();
+
+        ResponseDtoTagListDto response = new ResponseDtoTagListDto().code(200).data(tagList);
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{tagId}")
-    public ResponseEntity<ResponseDto<TagIdDto>> deleteTag(
-            @PathVariable Long tagId) {
-        return ResponseEntity.ok(ResponseDto.okWithData(tagService.deleteTag(tagId)));
+    @Override
+    public ResponseEntity<ResponseDtoTagIdDto> tagsPost(TagInfoDto tagInfoDto) {
+        TagIdDto tagIdDto = tagService.registerTag(tagInfoDto);
+
+        ResponseDtoTagIdDto response = new ResponseDtoTagIdDto().code(200).data(tagIdDto);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public ResponseEntity<ResponseDto<TagListDto>> getTagList() {
-        return ResponseEntity.ok(ResponseDto.okWithData(tagService.getTagList()));
+    @Override
+    public ResponseEntity<ResponseDtoTagIdDto> tagsTagIdDelete(Long tagId) {
+        TagIdDto tagIdDto = tagService.deleteTag(tagId);
+
+        ResponseDtoTagIdDto response = new ResponseDtoTagIdDto().code(200).data(tagIdDto);
+        return ResponseEntity.ok(response);
     }
- }
+}
+

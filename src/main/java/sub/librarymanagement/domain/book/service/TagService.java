@@ -4,11 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import sub.librarymanagement.common.exception.ApplicationException;
 import sub.librarymanagement.common.exception.ErrorCode;
-import sub.librarymanagement.domain.book.dto.TagDto;
-import sub.librarymanagement.domain.book.dto.TagIdDto;
-import sub.librarymanagement.domain.book.dto.TagInfoDto;
-import sub.librarymanagement.domain.book.dto.TagListDto;
 import sub.librarymanagement.persistence.book.entity.Tag;
+import sub.model.*;
 
 import java.util.List;
 
@@ -19,10 +16,10 @@ public class TagService {
     private final BookRepository bookRepository;
 
     public TagIdDto registerTag(TagInfoDto tagInfoDto) {
-        validateTagDuplication(tagInfoDto.name());
-        Tag tag = Tag.of(tagInfoDto.name());
+        validateTagDuplication(tagInfoDto.getName());
+        Tag tag = Tag.of(tagInfoDto.getName());
         bookRepository.saveTag(tag);
-        return TagIdDto.from(tag.getId());
+        return new TagIdDto().tagId(tag.getId());
     }
 
     private void validateTagDuplication(String name) {
@@ -35,7 +32,7 @@ public class TagService {
         bookRepository.findTagById(tagId);
         validateTagDeletion(tagId);
         bookRepository.deleteTagById(tagId);
-        return TagIdDto.from(tagId);
+        return new TagIdDto().tagId(tagId);
     }
 
     private void validateTagDeletion(Long tagId) {
@@ -47,8 +44,8 @@ public class TagService {
     public TagListDto getTagList() {
         List<TagDto> tagList = bookRepository.findAllTags()
                 .stream()
-                .map(tag -> TagDto.of(tag.getId(), tag.getName()))
+                .map(tag -> new TagDto().tagId(tag.getId()).name(tag.getName()))
                 .toList();
-        return TagListDto.from(tagList);
+        return new TagListDto().tags(tagList);
     }
 }

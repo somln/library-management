@@ -1,0 +1,562 @@
+openapi: 3.0.3
+info:
+  title: Library Management API
+  description: API for managing books, loans, users, and tags in a library system
+  version: 1.0.0
+
+servers:
+  - url: /api
+    description: Base API path
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ResponseDtoError:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        errorMessage:
+          type: string
+          description: Error message
+    ResponseDto:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: HTTP status code
+        data:
+          type: object
+          description: Response data object
+    LoginRequest:
+        type: object
+        required:
+          - username
+          - password
+        properties:
+          username:
+            type: string
+          password:
+            type: string
+
+    BookDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        author:
+          type: string
+        publisher:
+          type: string
+        publishDate:
+          type: string
+          format: date
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagDto'
+
+    BookInfoDto:
+      type: object
+      required:
+        - title
+        - author
+        - publisher
+        - publishDate
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+        publisher:
+          type: string
+        publishDate:
+          type: string
+          format: date
+        tagIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+
+    BookListDto:
+      type: object
+      properties:
+        totalPageNumber:
+          type: integer
+        nowPageNumber:
+          type: integer
+        isLast:
+          type: boolean
+        books:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookDto'
+
+    BookIdDto:
+      type: object
+      properties:
+        bookId:
+          type: integer
+          format: int64
+
+    BookTagListDto:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            type: integer
+            format: int64
+
+    TagDto:
+      type: object
+      properties:
+        tagId:
+          type: integer
+          format: int64
+        name:
+          type: string
+
+    TagInfoDto:
+      type: object
+      properties:
+        name:
+          type: string
+
+    TagListDto:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagDto'
+
+    TagIdDto:
+      type: object
+      properties:
+        tagId:
+          type: integer
+          format: int64
+
+    JoinDto:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+
+    UserIdDto:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+
+    LoanIdDto:
+      type: object
+      properties:
+        loanId:
+          type: integer
+          format: int64
+
+    IsLoanedDto:
+      type: object
+      properties:
+        isLoaned:
+          type: boolean
+
+    SearchDto:
+      type: object
+      required:
+        - q
+      properties:
+        q:
+          type: string
+
+    SortDto:
+      type: object
+      properties:
+        sort:
+          type: string
+          description: Sorting criteria
+
+    # ResponseDto with specific data types
+    ResponseDtoBookListDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/BookListDto'
+
+    ResponseDtoBookDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/BookDto'
+
+    ResponseDtoBookIdDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/BookIdDto'
+
+    ResponseDtoTagIdDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TagIdDto'
+    ResponseDtoTagListDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TagListDto'
+
+    ResponseDtoLoanIdDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/LoanIdDto'
+
+    ResponseDtoIsLoanedDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/IsLoanedDto'
+
+    ResponseDtoUserIdDto:
+      allOf:
+        - $ref: '#/components/schemas/ResponseDto'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/UserIdDto'
+
+paths:
+  /login:
+    post:
+      summary: Login to get JWT token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Authorization:
+              description: JWT token with Bearer prefix
+              schema:
+                type: string
+                example: "Bearer <your-jwt-token>"
+  /books:
+    post:
+      summary: Register a new book
+      tags:
+        - Books
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookInfoDto'
+      responses:
+        '200':
+          description: Book registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoBookIdDto'
+    get:
+      summary: Get book list
+      tags:
+        - Books
+      parameters:
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sorting criteria
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          description: List of tag IDs to filter books
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of books retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoBookListDto'
+
+  /books/{bookId}:
+    put:
+      summary: Update an existing book
+      tags:
+        - Books
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookInfoDto'
+      responses:
+        '200':
+          description: Book updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoBookIdDto'
+    delete:
+      summary: Delete a book
+      tags:
+        - Books
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Book deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoBookIdDto'
+    get:
+      summary: Get book details
+      tags:
+        - Books
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Book details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoBookDto'
+
+  /books/search:
+    get:
+      summary: Search books
+      tags:
+        - Books
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoBookListDto'
+
+  /tags:
+    post:
+      summary: Register a new tag
+      tags:
+        - Tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagInfoDto'
+      responses:
+        '200':
+          description: Tag registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoTagIdDto'
+    get:
+      summary: Get tag list
+      tags:
+        - Tags
+      responses:
+        '200':
+          description: List of tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoTagListDto'
+
+  /tags/{tagId}:
+    delete:
+      summary: Delete a tag
+      tags:
+        - Tags
+      parameters:
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Tag deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoTagIdDto'
+
+  /loans/books/{bookId}:
+    post:
+      security:
+        - bearerAuth: []
+      summary: Register a loan for a book
+      tags:
+        - Loans
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Loan registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoLoanIdDto'
+
+  /loans/{loanId}:
+    put:
+      security:
+        - bearerAuth: []
+      summary: Return a loan
+      tags:
+        - Loans
+      parameters:
+        - name: loanId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Loan returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoLoanIdDto'
+
+  /loans/books/{bookId}/is-loaned:
+    get:
+      summary: Check if a book is loaned
+      tags:
+        - Loans
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Loan status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoIsLoanedDto'
+
+  /join:
+    post:
+      summary: Register a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinDto'
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseDtoUserIdDto'

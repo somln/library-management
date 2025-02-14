@@ -1,6 +1,7 @@
 package sub.librarymanagement.domain.book.service;
 
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -9,12 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sub.librarymanagement.common.exception.ApplicationException;
 import sub.librarymanagement.common.exception.ErrorCode;
-import sub.librarymanagement.domain.book.dto.*;
 import sub.librarymanagement.domain.loan.service.LoanRepository;
 import sub.librarymanagement.persistence.book.entity.Book;
 import sub.librarymanagement.persistence.book.entity.BookTag;
 import sub.librarymanagement.persistence.book.entity.Tag;
 import sub.librarymanagement.persistence.loan.entity.Loan;
+import sub.model.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,43 +29,41 @@ public class BookService {
 
     @Transactional
     public BookIdDto registerBook(BookInfoDto bookDto) {
-        //bookDto에 포함된 tagId들로부터 Tag 객체들을 조회
-        List<Tag> tags = bookRepository.findAllTagsById(bookDto.tagIds());
-
         //Book 객체 생성 및 저장
-        Book book = Book.of(bookDto.title(), bookDto.author(), bookDto.publisher(), bookDto.publishDate());
+        Book book = Book.of(bookDto.getTitle(), bookDto.getAuthor(), bookDto.getPublisher(), bookDto.getPublishDate());
         bookRepository.saveBook(book);
-        if(bookDto.tagIds() != null || !bookDto.tagIds().isEmpty()) {
-            //BookTag 객체들 생성 및 저장
-            List<BookTag> bookTags = tags.stream()
-                    .map(tag -> BookTag.of(book.getId(), tag.getId()))
-                    .collect(Collectors.toList());
-            bookRepository.saveAllBookTags(bookTags);
-        }
 
-        return BookIdDto.from(book.getId());
+        // BookTag 객체들 생성 및 저장
+        saveBookTags(bookDto.getTagIds(), book);
+
+        return new BookIdDto().bookId(book.getId());
     }
 
     @Transactional
     public BookIdDto updateBook(Long bookId, BookInfoDto bookDto) {
         Book book = bookRepository.findBookById(bookId);
-        book.update(bookDto.title(), bookDto.author(), bookDto.publisher(), bookDto.publishDate());
+        book.update(bookDto.getTitle(), bookDto.getAuthor(), bookDto.getAuthor(), bookDto.getPublishDate());
 
         bookRepository.deleteTagsByBookId(bookId); // 기존 태그 삭제
 
-        if(bookDto.tagIds() != null || !bookDto.tagIds().isEmpty()) {
-            List<Tag> tags = bookRepository.findAllTagsById(bookDto.tagIds());
+        // BookTag 객체들 생성 및 저장
+        saveBookTags(bookDto.getTagIds(), book);
+
+        return new BookIdDto().bookId(bookId);
+    }
+
+    private void saveBookTags(List<Long> tagIds, Book book) {
+        if (tagIds != null && !tagIds.isEmpty()) {
+            List<Tag> tags = bookRepository.findAllTagsById(tagIds);
             List<BookTag> bookTags = tags.stream()
                     .map(tag -> BookTag.of(book.getId(), tag.getId()))
                     .collect(Collectors.toList());
-            bookRepository.saveAllBookTags(bookTags); // 새로운 태그 추가
+            bookRepository.saveAllBookTags(bookTags); // 태그 저장
         }
-
-        return BookIdDto.from(book.getId());
     }
 
     @Transactional
-    public void deleteBook(Long bookId) {
+    public BookIdDto deleteBook(Long bookId) {
         Book book = bookRepository.findBookById(bookId);
         //대출 중인 책이면 삭제 불가
         validateBookDeletion(bookId);
@@ -76,68 +75,83 @@ public class BookService {
         List<Loan> loans = loanRepository.findByBookId(book.getId());
         loans.forEach(Loan::removeBook);
         bookRepository.deleteBook(book);
+
+        return new BookIdDto().bookId(bookId);
     }
 
-    public void validateBookDeletion(Long bookId) {
+    private void validateBookDeletion(Long bookId) {
         if (loanRepository.findByBookIdAndReturnedFalse(bookId).isPresent()) {
             throw new ApplicationException(ErrorCode.CANNOT_DELETE_BOOK);
         }
     }
 
-    public BookListDto getBookList(SortDto sortDto, BookTagListDto tagListDto, Pageable pageable) {
-        Pageable sortedPageable = createSortedPageable(sortDto, pageable);
+    public BookListDto getBookList(String sort, List<Long> tags, Pageable pageable) {
+        Pageable sortedPageable = createSortedPageable(sort, pageable);
 
         Page<Book> bookPage;
-        if (tagListDto.tags() == null || tagListDto.tags().isEmpty()) {
-            //태그 필터링이 없는 경우
+        if (tags == null || tags.isEmpty()) {
+            // 태그 필터링이 없는 경우
             bookPage = bookRepository.findAll(sortedPageable);
         } else {
-            //태그 필터링이 있는 경우
-            bookPage = bookRepository.findAllWithTagFiltering(tagListDto.tags(), sortedPageable);
+            // 태그 필터링이 있는 경우
+            bookPage = bookRepository.findAllWithTagFiltering(tags, sortedPageable);
         }
 
         return createBookListDto(bookPage);
     }
 
-    private Pageable createSortedPageable(SortDto sortDto, Pageable pageable) {
-        Sort.Direction direction = sortDto.sortDirection().equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Sort sort = Sort.by(direction, sortDto.sortBy());
-        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+    private Pageable createSortedPageable(String sort, Pageable pageable) {
+        Sort.Direction direction = Sort.Direction.ASC;
+        String sortBy = "title";
+
+        if (sort != null && sort.equalsIgnoreCase("publishDate")) {
+            sortBy = "publishDate";
+        }
+        Sort sorted = Sort.by(direction, sortBy);
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sorted);
     }
 
     private BookListDto createBookListDto(Page<Book> bookPage) {
         List<BookDto> bookList = bookPage.getContent().stream()
-                .map(book -> BookDto.of(
-                        book.getId(),
-                        book.getTitle(),
-                        book.getAuthor(),
-                        book.getPublisher(),
-                        book.getPublishDate(),
-                        convertTagsToDto(bookRepository.findAllTagsByBookId(book.getId()))
-                ))
+                .map(this::createBookDto)
                 .toList();
+        return new BookListDto()
+                .totalPageNumber(bookPage.getTotalPages())
+                .nowPageNumber(bookPage.getNumber())
+                .isLast(bookPage.isLast())
+                .books(bookList);
+    }
 
-        return BookListDto.of(bookPage.getTotalPages(), bookPage.getNumber(), bookPage.isLast(), bookList);
+    @NotNull
+    private BookDto createBookDto(Book book) {
+        BookDto bookDto = new BookDto()
+                .id(book.getId())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .publisher(book.getPublisher())
+                .publishDate(book.getPublishDate());
+
+        List<Tag> tags = bookRepository.findAllTagsByBookId(book.getId());
+        bookDto.setTags(convertTagsToDto(tags));
+        return bookDto;
     }
 
     private List<TagDto> convertTagsToDto(List<Tag> tags) {
         return tags.stream()
-                .map(tag -> TagDto.of(tag.getId(), tag.getName()))
+                .map(tag -> new TagDto()
+                        .tagId(tag.getId())
+                        .name(tag.getName()))
                 .toList();
     }
 
+
     public BookDto getBook(Long bookId) {
         Book book = bookRepository.findBookById(bookId);
-        return BookDto.of(book.getId(),
-                book.getTitle(),
-                book.getAuthor(),
-                book.getPublisher(),
-                book.getPublishDate(),
-                convertTagsToDto(bookRepository.findAllTagsByBookId(book.getId())));
+        return createBookDto(book);
     }
 
-    public BookListDto searchBook(SearchDto searchDto, Pageable pageable) {
-        Page<Book> bookPage = bookRepository.search(searchDto.q(), pageable);
+    public BookListDto searchBook(String q, Pageable pageable) {
+        Page<Book> bookPage = bookRepository.search(q, pageable);
         return createBookListDto(bookPage);
     }
 

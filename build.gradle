@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.6'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.3.0'
 }
 
 group = 'sub'
@@ -33,15 +34,54 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
     // dotenv-java
-    implementation 'io.github.cdimascio:java-dotenv:+'
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    implementation 'org.jetbrains:annotations:24.0.0'
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2") // Swagger UI
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.15") // Swagger 어노테이션
+    implementation("org.openapitools:jackson-databind-nullable:0.2.6") // Nullable 처리
+    implementation("javax.json:javax.json-api:1.1.4") // JSON 처리 라이브러리
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "${rootProject.projectDir}/src/main/resources/api-spec.yaml"
+    outputDir = layout.buildDirectory.dir("generated").get().asFile.absolutePath
+    apiPackage = "sub.api"
+    modelPackage = "sub.model"
+    configOptions = [
+            "delegatePattern": "true",         // Controller에 Delegate 패턴 적용 (비즈니스 로직 분리)
+            "interfaceOnly": "true",           // Controller에서 구현체가 아닌 인터페이스만 생성 (직접 구현 가능)
+            "dateLibrary": "java8",            // Java 8의 `LocalDateTime`, `LocalDate` 사용
+            "useLombok": "true",               // Lombok 사용 (DTO getter/setter 자동 생성)
+            "useBeanValidation": "true",       // `@Valid`, `@NotNull` 등의 검증 어노테이션 추가
+            "useResponseEntity": "true",       // `ResponseEntity<T>`를 반환하도록 설정 (HTTP 응답 코드 지원)
+            "useJakartaEe": "true"             // Spring Boot 3에서 javax.validation 대신 jakarta.validation 사용
+    ]
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDirs += [
+                    "${layout.buildDirectory.get()}/generated/src/main/java"
+            ]
+        }
+    }
+}
+
+compileJava.dependsOn('openApiGenerate')

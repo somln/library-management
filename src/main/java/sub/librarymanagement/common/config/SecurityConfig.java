@@ -3,6 +3,7 @@ package sub.librarymanagement.common.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -44,8 +45,13 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests((auth) -> auth
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/books/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/books/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/tags").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/tags/*").hasRole("ADMIN")
                 .requestMatchers("/login", "/api/join").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated());
         http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
         http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
@@ -58,8 +64,11 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return web -> {
             web.ignoring()
-                    .requestMatchers("/api/join");
+                    .requestMatchers(
+                            "/join",
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**"
+                    );
         };
     }
-
 }

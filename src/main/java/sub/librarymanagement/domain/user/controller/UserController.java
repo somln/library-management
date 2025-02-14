@@ -1,27 +1,26 @@
 package sub.librarymanagement.domain.user.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import sub.librarymanagement.common.util.ResponseDto;
-import sub.librarymanagement.domain.user.dto.JoinDto;
-import sub.librarymanagement.domain.user.dto.UserIdDto;
+import sub.api.JoinApi;
 import sub.librarymanagement.domain.user.service.UserService;
+import sub.model.JoinDto;
+import sub.model.ResponseDtoUserIdDto;
+import sub.model.UserIdDto;
 
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements JoinApi {
 
     private final UserService userService;
 
-    @PostMapping("/join")
-    public ResponseEntity<ResponseDto<UserIdDto>> registerUser(@Valid @RequestBody JoinDto joinDto) {
+    @Override
+    public ResponseEntity<ResponseDtoUserIdDto> joinPost(JoinDto joinDto) {
         UserIdDto userIdDto = userService.registerUser(joinDto);
-        return ResponseEntity.ok(ResponseDto.okWithData(userIdDto));
+        ResponseDtoUserIdDto response = new ResponseDtoUserIdDto().code(200).data(userIdDto);
+
+        return ResponseEntity.ok(response);
     }
+
 }
