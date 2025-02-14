@@ -27,6 +27,9 @@ public class Loan {
     @Column(nullable = false)
     private LocalDate loanDate;  // 대출 일자
 
+    @Column(nullable = false)
+    private LocalDate dueDate; // 반납 기한
+
     private LocalDate returnDate;  // 반납일 (대출된 상태에서는 null)
 
     @Column(nullable = false)
@@ -37,6 +40,7 @@ public class Loan {
                 .userId(userId)
                 .bookId(bookId)
                 .loanDate(LocalDate.now())
+                .dueDate(LocalDate.now().plusDays(7))
                 .returned(false)
                 .build();
     }
