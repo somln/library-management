@@ -1,15 +1,16 @@
 package sub.librarymanagement.common.auth.jwt;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
+import sub.librarymanagement.common.exception.ErrorCode;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-
-import static sub.librarymanagement.common.auth.jwt.JWTProperties.*;
 
 @Component
 public class JWTUtil {
@@ -39,14 +40,17 @@ public class JWTUtil {
                 .get("role", String.class);
     }
 
-    public Boolean isExpired(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration()
-                .before(new Date());
+    public void isExpired(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getExpiration();
+        } catch (ExpiredJwtException e) {
+            throw new JwtException(ErrorCode.TOKEN_EXPIRED.getMessage());
+        }
     }
 
     public String createJwt(String username, String role, long expiredMs) {

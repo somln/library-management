@@ -48,15 +48,12 @@ public class JWTFilter extends OncePerRequestFilter {
             String token = parts[1];
 
             // 토큰 소멸 시간 검증
-            if (jwtUtil.isExpired(token)) {
-                throw new JwtException(ErrorCode.TOKEN_EXPIRED.getMessage());
-            }
+            jwtUtil.isExpired(token);
 
             // 토큰에서 username과 role 획득
             String username = jwtUtil.getUsername(token);
             String role = jwtUtil.getRole(token);
 
-            // 매 요청마다 DB 조회를 하지 않기 위해 임시 email과 pw로 User 객체 생성
             User user = User.of(username, "temp@example.com", "tempPW", role);
             CustomUserDetails customUserDetails = new CustomUserDetails(user);
 

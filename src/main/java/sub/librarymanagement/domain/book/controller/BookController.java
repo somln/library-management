@@ -18,15 +18,15 @@ public class BookController {
 
     @PostMapping("/admin/books")
     public ResponseEntity<ResponseDto<BookIdDto>> registerBook(
-            @Valid @RequestBody RegisterBookDto registerBookDto) {
+            @Valid @RequestBody BookInfoDto registerBookDto) {
         return ResponseEntity.ok(ResponseDto.okWithData(bookService.registerBook(registerBookDto)));
     }
 
     @PutMapping("/admin/books/{bookId}")
     public ResponseEntity<ResponseDto<BookIdDto>> updateBook(
             @PathVariable Long bookId,
-            @Valid @RequestBody RegisterBookDto registerBookDto) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.updateBook(bookId, registerBookDto)));
+            @Valid @RequestBody BookInfoDto updateBookDto) {
+        return ResponseEntity.ok(ResponseDto.okWithData(bookService.updateBook(bookId, updateBookDto)));
     }
 
     @DeleteMapping("/admin/books/{bookId}")
@@ -39,10 +39,10 @@ public class BookController {
     @GetMapping("/books")
     public ResponseEntity<ResponseDto<BookListDto>> getBookList(
             @Valid SortDto sortDto,
+            BookTagListDto bookTagListDto,
             Pageable pageable) {
-        return ResponseEntity.ok(ResponseDto.okWithData(bookService.getBookList(sortDto, pageable)));
+        return ResponseEntity.ok(ResponseDto.okWithData(bookService.getBookList(sortDto, bookTagListDto, pageable)));
     }
-
 
     @GetMapping("/books/{bookId}")
     public ResponseEntity<ResponseDto<BookDto>> getBook(

@@ -1,18 +1,13 @@
 package sub.librarymanagement.persistence.book.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Builder
 @Table(name = "books")
@@ -22,16 +17,16 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
+    @Column(nullable = false)
     private String title;
 
-    @NotNull
+    @Column(nullable = false)
     private String author;
 
-    @NotNull
+    @Column(nullable = false)
     private String publisher;
 
-    @NotNull
+    @Column(nullable = false)
     private LocalDate publishDate;
 
     public static Book of(String title, String author, String publisher, LocalDate publishDate) {

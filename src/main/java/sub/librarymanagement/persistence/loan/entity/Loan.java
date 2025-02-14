@@ -24,10 +24,12 @@ public class Loan {
 
     private Long bookId;  // 대출한 도서
 
+    @Column(nullable = false)
     private LocalDate loanDate;  // 대출 일자
 
     private LocalDate returnDate;  // 반납일 (대출된 상태에서는 null)
 
+    @Column(nullable = false)
     private boolean returned;  // 반납 여부
 
     public static Loan of(Long userId, Long bookId) {

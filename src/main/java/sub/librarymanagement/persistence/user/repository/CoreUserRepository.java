@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import sub.librarymanagement.domain.user.service.UserRepository;
 import sub.librarymanagement.persistence.user.entity.User;
 
+import java.util.Optional;
+
 @Repository
 @Transactional
 @RequiredArgsConstructor
@@ -29,7 +31,12 @@ public class CoreUserRepository implements UserRepository {
     }
 
     @Override
-    public User findByUsername(String username) {
+    public Optional<User >findByUsername(String username) {
         return jpaUserRepository.findByUsername(username);
+    }
+
+    @Override
+    public User getByUsername(String username) {
+        return jpaUserRepository.getByUsername(username);
     }
 }

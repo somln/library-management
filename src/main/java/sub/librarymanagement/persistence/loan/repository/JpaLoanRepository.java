@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface JpaLoanRepository extends JpaRepository<Loan, Long> {
-    Optional<Object> findByIdAndReturnedFalse(Long bookId);
+    Optional<Object> findByBookIdAndReturnedFalse(Long bookId);
 
     List<Loan> findByBookId(Long bookId);
 }

@@ -22,7 +22,10 @@ public enum ErrorCode {
     CANNOT_LOAN_BOOK(BAD_REQUEST, "대출 중인 책은 대출할 수 없습니다"),
     LOAN_NOT_FOUND(NOT_FOUND, "대출 정보를 찾을 수 없습니다"),
     ALREADY_RETURNED_LOAN(BAD_REQUEST, "이미 반납된 대출입니다"),
-    CANNOT_RETURN_OTHER_USER_LOAN(BAD_REQUEST, "다른 사용자의 대출은 반납할 수 없습니다");
+    CANNOT_RETURN_OTHER_USER_LOAN(BAD_REQUEST, "다른 사용자의 대출은 반납할 수 없습니다"),
+    TAG_NOT_FOUND(NOT_FOUND, "태그를 찾을 수 없습니다"),
+    TAG_DUPLICATION(BAD_REQUEST, "중복된 태그 이름입니다"),
+    TAG_DELETION(BAD_REQUEST, "사용 중인 태그는 삭제할 수 없습니다");
 
     private final HttpStatus httpStatus;
     private final String message;

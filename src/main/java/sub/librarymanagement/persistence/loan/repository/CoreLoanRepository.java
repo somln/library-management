@@ -20,7 +20,7 @@ public class CoreLoanRepository implements LoanRepository {
 
     @Override
     public Optional<Object> findByBookIdAndReturnedFalse(Long bookId) {
-        return jpaLoanRepository.findByIdAndReturnedFalse(bookId);
+        return jpaLoanRepository.findByBookIdAndReturnedFalse(bookId);
     }
 
     @Override

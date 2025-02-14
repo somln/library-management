@@ -8,6 +8,7 @@ import sub.librarymanagement.common.exception.ErrorCode;
 import sub.librarymanagement.domain.book.service.BookRepository;
 import sub.librarymanagement.domain.loan.dto.IsLoanedDto;
 import sub.librarymanagement.domain.loan.dto.LoanIdDto;
+import sub.librarymanagement.domain.user.service.UserRepository;
 import sub.librarymanagement.persistence.loan.entity.Loan;
 import sub.librarymanagement.persistence.user.entity.User;
 
@@ -17,10 +18,12 @@ public class LoanService {
 
     private final LoanRepository loanRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
 
     public LoanIdDto registerLoan(Long bookId, User user) {
         validateLoanAvailability(bookId);
-        Loan loan = Loan.of(user.getId(), bookId);
+        User currentUser = userRepository.getByUsername(user.getUsername());
+        Loan loan = Loan.of(currentUser.getId(), bookId);
         loanRepository.save(loan);
         return new LoanIdDto(loan.getId());
     }
@@ -35,7 +38,8 @@ public class LoanService {
     @Transactional
     public LoanIdDto returnLoan(Long loanId, User user) {
         Loan loan = loanRepository.findById(loanId);
-        validateLoanReturn(loan, user);
+        User currentUser = userRepository.getByUsername(user.getUsername());
+        validateLoanReturn(loan, currentUser);
         loan.returnBook(loan);
         return new LoanIdDto(loan.getId());
     }
@@ -52,7 +56,7 @@ public class LoanService {
     }
 
     public IsLoanedDto isLoaned(Long bookId) {
-        bookRepository.findById(bookId);
+        bookRepository.findBookById(bookId);
         return IsLoanedDto.from(loanRepository.findByBookIdAndReturnedFalse(bookId).isPresent());
     }
 }
