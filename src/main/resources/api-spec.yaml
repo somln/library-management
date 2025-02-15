@@ -34,15 +34,15 @@ components:
           type: object
           description: Response data object
     LoginRequest:
-        type: object
-        required:
-          - username
-          - password
-        properties:
-          username:
-            type: string
-          password:
-            type: string
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
 
     BookDto:
       type: object
@@ -272,6 +272,7 @@ paths:
       summary: Login to get JWT token
       tags:
         - Auth
+      operationId: login
       requestBody:
         required: true
         content:
@@ -292,6 +293,7 @@ paths:
       summary: Register a new book
       tags:
         - Books
+      operationId: createBook
       requestBody:
         required: true
         content:
@@ -309,6 +311,7 @@ paths:
       summary: Get book list
       tags:
         - Books
+      operationId: getBookList
       parameters:
         - name: sort
           in: query
@@ -344,6 +347,7 @@ paths:
       summary: Update an existing book
       tags:
         - Books
+      operationId: updateBook
       parameters:
         - name: bookId
           in: path
@@ -368,6 +372,7 @@ paths:
       summary: Delete a book
       tags:
         - Books
+      operationId: deleteBook
       parameters:
         - name: bookId
           in: path
@@ -386,6 +391,7 @@ paths:
       summary: Get book details
       tags:
         - Books
+      operationId: getBook
       parameters:
         - name: bookId
           in: path
@@ -406,6 +412,7 @@ paths:
       summary: Search books
       tags:
         - Books
+      operationId: searchBooks
       parameters:
         - name: q
           in: query
@@ -433,6 +440,7 @@ paths:
       summary: Register a new tag
       tags:
         - Tags
+      operationId: createTag
       requestBody:
         required: true
         content:
@@ -450,6 +458,7 @@ paths:
       summary: Get tag list
       tags:
         - Tags
+      operationId: getTagList
       responses:
         '200':
           description: List of tags retrieved successfully
@@ -463,6 +472,7 @@ paths:
       summary: Delete a tag
       tags:
         - Tags
+      operationId: deleteTag
       parameters:
         - name: tagId
           in: path
@@ -485,6 +495,7 @@ paths:
       summary: Register a loan for a book
       tags:
         - Loans
+      operationId: createLoan
       parameters:
         - name: bookId
           in: path
@@ -507,6 +518,7 @@ paths:
       summary: Return a loan
       tags:
         - Loans
+      operationId: returnLoan
       parameters:
         - name: loanId
           in: path
@@ -527,6 +539,7 @@ paths:
       summary: Check if a book is loaned
       tags:
         - Loans
+      operationId: checkIsLoaned
       parameters:
         - name: bookId
           in: path
@@ -547,6 +560,7 @@ paths:
       summary: Register a new user
       tags:
         - Users
+      operationId: createUser
       requestBody:
         required: true
         content:

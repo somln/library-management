@@ -19,7 +19,7 @@ public class BookController implements BooksApi {
     private final BookService bookService;
 
     @Override
-    public ResponseEntity<ResponseDtoBookIdDto> booksPost(BookInfoDto bookInfoDto) {
+    public ResponseEntity<ResponseDtoBookIdDto> createBook(BookInfoDto bookInfoDto) {
         BookIdDto bookIdDto = bookService.registerBook(bookInfoDto);
 
         ResponseDtoBookIdDto response = new ResponseDtoBookIdDto().code(200).data(bookIdDto);
@@ -27,7 +27,7 @@ public class BookController implements BooksApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoBookIdDto> booksBookIdDelete(Long bookId) {
+    public ResponseEntity<ResponseDtoBookIdDto> deleteBook(Long bookId) {
         BookIdDto bookIdDto = bookService.deleteBook(bookId);
 
         ResponseDtoBookIdDto response = new ResponseDtoBookIdDto().code(200).data(bookIdDto);
@@ -35,7 +35,7 @@ public class BookController implements BooksApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoBookListDto> booksGet(String sort, List<Long> tags, Integer page, Integer size) {
+    public ResponseEntity<ResponseDtoBookListDto> getBookList(String sort, List<Long> tags, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(
                 Optional.ofNullable(page).orElse(0),
                 Optional.ofNullable(size).orElse(20)
@@ -48,7 +48,7 @@ public class BookController implements BooksApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoBookDto> booksBookIdGet(Long bookId) {
+    public ResponseEntity<ResponseDtoBookDto> getBook(Long bookId) {
         BookDto result = bookService.getBook(bookId);
 
         ResponseDtoBookDto response = new ResponseDtoBookDto().code(200).data(result);
@@ -56,7 +56,7 @@ public class BookController implements BooksApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoBookListDto> booksSearchGet(String q, Integer page, Integer size) {
+    public ResponseEntity<ResponseDtoBookListDto> searchBooks(String q, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(
                 Optional.ofNullable(page).orElse(0),
                 Optional.ofNullable(size).orElse(20)
@@ -69,7 +69,7 @@ public class BookController implements BooksApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoBookIdDto> booksBookIdPut(Long bookId, BookInfoDto bookInfoDto) {
+    public ResponseEntity<ResponseDtoBookIdDto> updateBook(Long bookId, BookInfoDto bookInfoDto) {
         BookIdDto bookIdDto = bookService.updateBook(bookId, bookInfoDto);
 
         ResponseDtoBookIdDto response = new ResponseDtoBookIdDto().code(200).data(bookIdDto);

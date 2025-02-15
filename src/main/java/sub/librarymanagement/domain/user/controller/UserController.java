@@ -16,7 +16,7 @@ public class UserController implements JoinApi {
     private final UserService userService;
 
     @Override
-    public ResponseEntity<ResponseDtoUserIdDto> joinPost(JoinDto joinDto) {
+    public ResponseEntity<ResponseDtoUserIdDto> createUser(JoinDto joinDto) {
         UserIdDto userIdDto = userService.registerUser(joinDto);
         ResponseDtoUserIdDto response = new ResponseDtoUserIdDto().code(200).data(userIdDto);
 
