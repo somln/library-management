@@ -1,0 +1,71 @@
+name: CICD
+on:
+  push:
+    branches: ["main"]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo "${{ secrets.ENV }}" > .env
+          cat .env
+
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Generate OpenAPI and Build
+        run: |
+          ./gradlew openApiGenerate
+          ./gradlew bootjar
+
+      - name: Make zip file
+        run: |
+          mkdir deploy
+          cp ./appspec.yml ./deploy/
+          cp ./Dockerfile ./deploy/
+          cp ./docker-compose.yml ./deploy/
+          cp ./scripts/*.sh ./deploy/
+          cp ./build/libs/*.jar ./deploy/
+          cp ./.env ./deploy/
+          zip -r -qq -j ./library-build.zip ./deploy
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp \
+            --region ap-northeast-2 \
+            ./library-build.zip s3://library-sub-bucket
+
+      - name: Code Deploy
+        run: >
+          aws deploy create-deployment --application-name library-deploy
+          --deployment-config-name CodeDeployDefault.AllAtOnce
+          --deployment-group-name library-deploy-group
+          --s3-location bucket=library-sub-bucket,bundleType=zip,key=library-build.zip
