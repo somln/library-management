@@ -8,8 +8,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sub.librarymanagement.common.cache.CacheService;
 import sub.librarymanagement.common.exception.ApplicationException;
 import sub.librarymanagement.common.exception.ErrorCode;
+import sub.librarymanagement.domain.book.dto.BookCacheDto;
+import sub.librarymanagement.domain.book.dto.BookListCacheDto;
 import sub.librarymanagement.domain.loan.service.LoanRepository;
 import sub.librarymanagement.persistence.book.entity.Book;
 import sub.librarymanagement.persistence.book.entity.BookTag;
@@ -17,6 +20,7 @@ import sub.librarymanagement.persistence.book.entity.Tag;
 import sub.librarymanagement.persistence.loan.entity.Loan;
 import sub.model.*;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,21 +30,25 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final LoanRepository loanRepository;
+    private final CacheService cacheService; // Assuming CacheService is the same as in the first service
 
     @Transactional
     public BookIdDto registerBook(BookInfoDto bookDto) {
-        //Book 객체 생성 및 저장
+        // Book 객체 생성 및 저장
         Book book = Book.of(bookDto.getTitle(), bookDto.getAuthor(), bookDto.getPublisher(), bookDto.getPublishDate());
         bookRepository.saveBook(book);
 
         // BookTag 객체들 생성 및 저장
         saveBookTags(bookDto.getTagIds(), book);
 
+        // Cache eviction
+        cacheService.evictAll("books", "book-search");
         return new BookIdDto().bookId(book.getId());
     }
 
     @Transactional
     public BookIdDto updateBook(Long bookId, BookInfoDto bookDto) {
+
         Book book = bookRepository.findBookById(bookId);
         book.update(bookDto.getTitle(), bookDto.getAuthor(), bookDto.getAuthor(), bookDto.getPublishDate());
 
@@ -48,6 +56,9 @@ public class BookService {
 
         // BookTag 객체들 생성 및 저장
         saveBookTags(bookDto.getTagIds(), book);
+
+        cacheService.evictCache("book", bookId.toString());
+        cacheService.evictAll("books", "book-search");
 
         return new BookIdDto().bookId(bookId);
     }
@@ -58,16 +69,17 @@ public class BookService {
             List<BookTag> bookTags = tags.stream()
                     .map(tag -> BookTag.of(book.getId(), tag.getId()))
                     .collect(Collectors.toList());
-            bookRepository.saveAllBookTags(bookTags); // 태그 저장
+            bookRepository.saveAllBookTags(bookTags);
         }
     }
 
     @Transactional
     public BookIdDto deleteBook(Long bookId) {
         Book book = bookRepository.findBookById(bookId);
-        //대출 중인 책이면 삭제 불가
+        // 대출 중인 책은 삭제할 수 없음
         validateBookDeletion(bookId);
-        //책 삭제 시, 책과 연관된 태그 삭제
+
+        //책, 첵-태그 관계 삭제
         bookRepository.deleteTagsByBookId(bookId);
         bookRepository.deleteBook(book);
 
@@ -75,6 +87,9 @@ public class BookService {
         List<Loan> loans = loanRepository.findByBookId(book.getId());
         loans.forEach(Loan::removeBook);
         bookRepository.deleteBook(book);
+
+        cacheService.evictCache("book", bookId.toString());
+        cacheService.evictAll("books", "book-search");
 
         return new BookIdDto().bookId(bookId);
     }
@@ -86,6 +101,14 @@ public class BookService {
     }
 
     public BookListDto getBookList(String sort, List<Long> tags, Pageable pageable) {
+        String cacheKey = String.format("books:%s:%s:%d:%d", sort, tags, pageable.getPageNumber(), pageable.getPageSize());
+
+        // 캐시에서 먼저 조회
+        BookListCacheDto cachedResult = cacheService.getCache("books", cacheKey, BookListCacheDto.class);
+        if (cachedResult != null) {
+            return cachedResult.toBookListDto();
+        }
+
         Pageable sortedPageable = createSortedPageable(sort, pageable);
 
         Page<Book> bookPage;
@@ -97,7 +120,12 @@ public class BookService {
             bookPage = bookRepository.findAllWithTagFiltering(tags, sortedPageable);
         }
 
-        return createBookListDto(bookPage);
+        BookListDto result = createBookListDto(bookPage);
+
+        // 캐시에 저장 (TTL 30분 설정)
+        cacheService.setCache("books", cacheKey, BookListCacheDto.from(result), Duration.ofMinutes(30));
+
+        return result;
     }
 
     private Pageable createSortedPageable(String sort, Pageable pageable) {
@@ -144,15 +172,39 @@ public class BookService {
                 .toList();
     }
 
-
     public BookDto getBook(Long bookId) {
+        // 캐시에서 먼저 조회
+        BookCacheDto cachedBook = cacheService.getCache("book", bookId.toString(), BookCacheDto.class);
+        if (cachedBook != null) {
+            return cachedBook.toBookDto();
+        }
+
+        // 캐시에 없으면 DB 조회 후 저장
         Book book = bookRepository.findBookById(bookId);
-        return createBookDto(book);
+        BookDto bookDto = createBookDto(book);
+
+        // 캐시에 저장 (60분 유지)
+        cacheService.setCache("book", bookId.toString(), BookCacheDto.from(bookDto), Duration.ofMinutes(60));
+
+        return bookDto;
     }
 
     public BookListDto searchBook(String q, Pageable pageable) {
+        String cacheKey = String.format("book-search:%s:%d:%d", q, pageable.getPageNumber(), pageable.getPageSize());
+
+        // 캐시에서 먼저 조회
+        BookListCacheDto cachedResult = cacheService.getCache("book-search", cacheKey, BookListCacheDto.class);
+        if (cachedResult != null) {
+            return cachedResult.toBookListDto();
+        }
+
+        // 캐시에 없으면 DB에서 조회
         Page<Book> bookPage = bookRepository.search(q, pageable);
-        return createBookListDto(bookPage);
+        BookListDto result = createBookListDto(bookPage);
+
+        // 캐시에 저장 (TTL 5분 설정)
+        cacheService.setCache("book-search", cacheKey, BookListCacheDto.from(result), Duration.ofMinutes(5));
+        return result;
     }
 
 }
