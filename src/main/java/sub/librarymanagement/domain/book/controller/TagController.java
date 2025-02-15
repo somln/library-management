@@ -14,7 +14,7 @@ public class TagController implements TagsApi {
     private final TagService tagService;
 
     @Override
-    public ResponseEntity<ResponseDtoTagListDto> tagsGet() {
+    public ResponseEntity<ResponseDtoTagListDto> getTagList() {
         TagListDto tagList = tagService.getTagList();
 
         ResponseDtoTagListDto response = new ResponseDtoTagListDto().code(200).data(tagList);
@@ -22,7 +22,7 @@ public class TagController implements TagsApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoTagIdDto> tagsPost(TagInfoDto tagInfoDto) {
+    public ResponseEntity<ResponseDtoTagIdDto> createTag(TagInfoDto tagInfoDto) {
         TagIdDto tagIdDto = tagService.registerTag(tagInfoDto);
 
         ResponseDtoTagIdDto response = new ResponseDtoTagIdDto().code(200).data(tagIdDto);
@@ -30,7 +30,7 @@ public class TagController implements TagsApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoTagIdDto> tagsTagIdDelete(Long tagId) {
+    public ResponseEntity<ResponseDtoTagIdDto> deleteTag(Long tagId) {
         TagIdDto tagIdDto = tagService.deleteTag(tagId);
 
         ResponseDtoTagIdDto response = new ResponseDtoTagIdDto().code(200).data(tagIdDto);

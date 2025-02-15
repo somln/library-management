@@ -21,14 +21,14 @@ public class LoanController implements LoansApi {
     private final LoanService loanService;
 
     @Override
-    public ResponseEntity<ResponseDtoIsLoanedDto> loansBooksBookIdIsLoanedGet(Long bookId) {
+    public ResponseEntity<ResponseDtoIsLoanedDto> checkIsLoaned(Long bookId) {
         IsLoanedDto loaned = loanService.isLoaned(bookId);
         ResponseDtoIsLoanedDto response = new ResponseDtoIsLoanedDto().code(200).data(loaned);
         return ResponseEntity.ok(response);
     }
 
     @Override
-    public ResponseEntity<ResponseDtoLoanIdDto> loansBooksBookIdPost(Long bookId) {
+    public ResponseEntity<ResponseDtoLoanIdDto> createLoan(Long bookId) {
         LoanIdDto loanIdDto = loanService.registerLoan(bookId, getCurrentUser());
 
         ResponseDtoLoanIdDto response = new ResponseDtoLoanIdDto().code(200).data(loanIdDto);
@@ -36,7 +36,7 @@ public class LoanController implements LoansApi {
     }
 
     @Override
-    public ResponseEntity<ResponseDtoLoanIdDto> loansLoanIdPut(Long loanId) {
+    public ResponseEntity<ResponseDtoLoanIdDto> returnLoan(Long loanId) {
         LoanIdDto loanIdDto = loanService.returnLoan(loanId, getCurrentUser());
 
         ResponseDtoLoanIdDto response = new ResponseDtoLoanIdDto().code(200).data(loanIdDto);

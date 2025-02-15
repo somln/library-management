@@ -11,7 +11,7 @@ import sub.model.LoginRequest;
 public class LoginController implements LoginApi {
 
     @Override
-    public ResponseEntity<Void> loginPost(LoginRequest loginRequest) {
-        return LoginApi.super.loginPost(loginRequest);
+    public ResponseEntity<Void> login(LoginRequest loginRequest) {
+        return LoginApi.super.login(loginRequest);
     }
 }
