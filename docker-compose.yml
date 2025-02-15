@@ -20,3 +20,9 @@ services:
       - redis
     environment:
       TZ: "Asia/Seoul"
+      DB_ADDR: ${DB_ADDR}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    env_file:
+      - .env
