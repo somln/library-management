@@ -14,9 +14,13 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import sub.librarymanagement.common.auth.jwt.JWTFilter;
 import sub.librarymanagement.common.auth.jwt.JWTUtil;
 import sub.librarymanagement.common.auth.jwt.LoginFilter;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -45,6 +49,9 @@ public class SecurityConfig {
         http.formLogin(AbstractHttpConfigurer::disable);
         http.httpBasic(AbstractHttpConfigurer::disable);
         http.authorizeHttpRequests((auth) -> auth
+                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/metrics/**").permitAll()
+                .requestMatchers("/api/actuator/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/books/*").hasRole("ADMIN")
@@ -57,6 +64,14 @@ public class SecurityConfig {
         http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
+        http.cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(Arrays.asList("http://localhost:9090"));
+            config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            config.setAllowedHeaders(Arrays.asList("*"));
+            return config;
+        }));
+
         return http.build();
     }
 
@@ -67,8 +82,13 @@ public class SecurityConfig {
                     .requestMatchers(
                             "/join",
                             "/swagger-ui/**",
-                            "/v3/api-docs/**"
+                            "/v3/api-docs/**",
+                            "/actuator/**",
+                            "/api/actuator/**",
+                            "/metrics/**"
                     );
         };
     }
+
+
 }

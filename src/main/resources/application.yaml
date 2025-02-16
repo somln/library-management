@@ -1,3 +1,28 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /api/actuator
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+  metrics:
+    enable:
+      http.server.requests: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+server:
+  tomcat:
+    reregistration:
+      enabled: true
 spring:
   application:
     name: library-management

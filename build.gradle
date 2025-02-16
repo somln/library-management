@@ -51,6 +51,9 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:2.2.15") // Swagger 어노테이션
     implementation("org.openapitools:jackson-databind-nullable:0.2.6") // Nullable 처리
     implementation("javax.json:javax.json-api:1.1.4") // JSON 처리 라이브러리
+
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
