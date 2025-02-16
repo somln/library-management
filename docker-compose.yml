@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   redis:
     container_name: redis
@@ -9,13 +8,30 @@ services:
     environment:
       TZ: "Asia/Seoul"
 
-  library-management:
-    container_name: library-management
+  spring-blue:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    depends_on:
+      - redis
+    environment:
+      TZ: "Asia/Seoul"
+      DB_ADDR: ${DB_ADDR}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_PROFILES_ACTIVE: prod
+    env_file:
+      - .env
+
+  spring-green:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
     depends_on:
       - redis
     environment:

@@ -1,3 +1,25 @@
+spring:
+  application:
+    name: library-management
+  datasource:
+    url: ${DB_ADDR}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
 management:
   endpoints:
     web:
@@ -23,21 +45,4 @@ server:
   tomcat:
     reregistration:
       enabled: true
-spring:
-  application:
-    name: library-management
-  datasource:
-    url: ${DB_ADDR}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
+

@@ -1,29 +1,47 @@
 #!/usr/bin/env bash
 
-APP_NAME=library-management
-
 cd /home/ubuntu/app
 
-echo "> Check the currently running container"
-CONTAINER_ID=$(docker ps -aqf "name=$APP_NAME")
+EXIST_BLUE=$(docker-compose ps | grep "spring-blue" | grep Up)
 
-if [ -z "$CONTAINER_ID" ];
-then
-  echo "> No such container is running."
+if [ -z "$EXIST_BLUE" ]; then
+    docker-compose up -d spring-blue
+    BEFORE_COLOR="green"
+    AFTER_COLOR="blue"
+    BEFORE_PORT=8081
+    AFTER_PORT=8080
 else
-  echo "> Stop and remove container: $CONTAINER_ID"
-  docker stop "$CONTAINER_ID"
-  docker rm "$CONTAINER_ID"
+    docker-compose up -d spring-green
+    BEFORE_COLOR="blue"
+    AFTER_COLOR="green"
+    BEFORE_PORT=8080
+    AFTER_PORT=8081
 fi
 
-echo "> Stopping all services using Docker Compose"
-docker-compose down
+echo "===== ${AFTER_COLOR} server up(port:${AFTER_PORT}) ====="
 
-echo "> Removing previous Docker image: $APP_NAME"
-docker rmi -f "$APP_NAME"
 
-echo "> Building doomz service using Docker Compose"
-docker-compose -f docker-compose.yml build "$APP_NAME" "$APP_NAME"
+for cnt in {1..10}
+do
+    echo "===== 서버 응답 확인중(${cnt}/10) =====";
+    UP=$(curl -s http://localhost:${AFTER_PORT}/actuator/health)
+    if [ -z "${UP}" ]
+        then
+            sleep 10
+            continue
+        else
+            break
+    fi
+done
 
-echo "> Starting all services using Docker Compose"
-docker-compose up -d
+if [ $cnt -eq 10 ]
+then
+    echo "===== 서버 실행 실패 ====="
+    exit 1
+fi
+
+echo "===== Nginx 설정 변경 ====="
+docker exec -it nginx /bin/bash -c "sed -i 's/${BEFORE_PORT}/${AFTER_PORT}/' /etc/nginx/conf.d/default.conf && nginx -s reload"
+
+echo "$BEFORE_COLOR server down(port:${BEFORE_PORT})"
+docker-compose stop spring-${BEFORE_COLOR}
