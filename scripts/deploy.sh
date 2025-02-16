@@ -24,7 +24,7 @@ echo "===== ${AFTER_COLOR} server up(port:${AFTER_PORT}) ====="
 for cnt in {1..10}
 do
     echo "===== 서버 응답 확인중(${cnt}/10) =====";
-    UP=$(curl -s http://localhost:${AFTER_PORT}/actuator/health)
+    UP=$(curl -s http://localhost:${AFTER_PORT}/api/actuator/health)
     if [ -z "${UP}" ]
         then
             sleep 10
@@ -41,7 +41,7 @@ then
 fi
 
 echo "===== Nginx 설정 변경 ====="
-docker exec -it nginx /bin/bash -c "sed -i 's/${BEFORE_PORT}/${AFTER_PORT}/' /etc/nginx/conf.d/default.conf && nginx -s reload"
+docker exec -it nginx /bin/bash -c "sed -i 's/${BEFORE_PORT}/${AFTER_PORT}/' /etc/nginx/nginx.conf && nginx -s reload"
 
 echo "$BEFORE_COLOR server down(port:${BEFORE_PORT})"
 docker-compose stop spring-${BEFORE_COLOR}

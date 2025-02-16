@@ -45,4 +45,6 @@ server:
   tomcat:
     reregistration:
       enabled: true
-
+logging:
+  level:
+    org.springframework.security: DEBUG
