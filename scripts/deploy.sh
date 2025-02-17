@@ -41,7 +41,7 @@ then
 fi
 
 echo "===== Nginx 설정 변경 ====="
-docker exec -it nginx /bin/bash -c "sed -i 's/${BEFORE_PORT}/${AFTER_PORT}/' /etc/nginx/nginx.conf && nginx -s reload"
+sudo sed -i "s/${BEFORE_PORT}/${AFTER_PORT}/" /etc/nginx/nginx.conf && sudo nginx -s reload
 
 echo "$BEFORE_COLOR server down(port:${BEFORE_PORT})"
 docker-compose stop spring-${BEFORE_COLOR}
