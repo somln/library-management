@@ -43,7 +43,7 @@ public class BookService {
 
         // Cache eviction
         cacheService.evictAll("books", "book-search");
-        return new BookIdDto().bookId(book.getId()+ 1000);
+        return new BookIdDto().bookId(book.getId());
     }
 
     @Transactional
