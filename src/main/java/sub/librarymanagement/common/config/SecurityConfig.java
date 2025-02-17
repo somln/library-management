@@ -17,10 +17,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import sub.librarymanagement.common.auth.jwt.JWTFilter;
+import sub.librarymanagement.common.auth.jwt.JWTProperties;
 import sub.librarymanagement.common.auth.jwt.JWTUtil;
 import sub.librarymanagement.common.auth.jwt.LoginFilter;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -52,7 +54,10 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/metrics/**").permitAll()
                 .requestMatchers("/api/actuator/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("http://43.200.223.110:8080").permitAll()
+                .requestMatchers("/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**", "/swagger-resources",
+                        "/swagger-resources/**", "/configuration/ui", "/configuration/security", "/swagger-ui/**",
+                        "/webjars/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/books/*").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/books/*").hasRole("ADMIN")
@@ -64,13 +69,20 @@ public class SecurityConfig {
         http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.cors(cors -> cors.configurationSource(request -> {
-            CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(Arrays.asList("http://localhost:9090"));
-            config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            config.setAllowedHeaders(Arrays.asList("*"));
-            return config;
-        }));
+        // CORS 설정 추가
+        http.cors(cors -> cors
+                .configurationSource(request -> {
+                    CorsConfiguration configuration = new CorsConfiguration();
+                    configuration.applyPermitDefaultValues();
+                    configuration.addAllowedOriginPattern("*");
+                    configuration.setAllowedMethods(
+                            Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"));
+
+                    configuration.setAllowCredentials(true);
+                    configuration.addExposedHeader(JWTProperties.HEADER_STRING_TOKEN);
+                    configuration.setAllowedHeaders(Collections.singletonList("*"));
+                    return configuration;
+                }));
 
         return http.build();
     }
