@@ -38,9 +38,7 @@ if [ "$UP" != "UP" ]; then
     docker-compose stop spring-${AFTER_COLOR}
     docker-compose rm -f spring-${AFTER_COLOR}
 
-    echo "===== ${BEFORE_COLOR} 서버 재시작 (포트 ${BEFORE_PORT}) ====="
-    docker-compose start spring-${BEFORE_COLOR}
-
+    echo "===== 배포 실패: 기존(${BEFORE_COLOR}) 컨테이너 유지 ====="
     exit 1
 fi
 
