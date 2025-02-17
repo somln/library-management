@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/metrics/**").permitAll()
                 .requestMatchers("/api/actuator/**").permitAll()
-                .requestMatchers("http://43.200.223.110:8080").permitAll()
+                .requestMatchers("http://43.200.223.110:8080/").permitAll()
                 .requestMatchers("/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**", "/swagger-resources",
                         "/swagger-resources/**", "/configuration/ui", "/configuration/security", "/swagger-ui/**",
                         "/webjars/**", "/swagger-ui.html").permitAll()
