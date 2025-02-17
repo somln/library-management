@@ -22,7 +22,7 @@ public class UserService {
         User user = User.of(joinDto.getUsername(), joinDto.getEmail(),
                 bCryptPasswordEncoder.encode(joinDto.getPassword()), joinDto.getRole());
         userRepository.save(user);
-        return new UserIdDto().userId(user.getId()+1234);
+        return new UserIdDto().userId(user.getId());
     }
 
     // 사용자 이름과 이메일 중복 체크
